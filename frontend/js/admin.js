@@ -2,10 +2,22 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+     // ============================================
+    // FORCER LA CONNEXION METAMASK
+    // ============================================
+    try {
+        // Demander la connexion MetaMask
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.log("✅ MetaMask connecté:", accounts[0]);
+    } catch (error) {
+        console.error("❌ Erreur connexion MetaMask:", error);
+        alert("Veuillez connecter MetaMask pour utiliser l'administration");
+    }
+
     // ============================================
     // RÉCUPÉRATION DE L'ADRESSE DU CONTRAT
     // ============================================
-    const API_URL = 'https://diplomachain.onrender.com/api';
+    const API_URL = 'http://localhost:5000/api';
     let contractAddress = null;
     
     try {

@@ -1,8 +1,17 @@
 // admin-settings.js - Gestion avancée du contrat (version améliorée)
 
 document.addEventListener('DOMContentLoaded', async () => {
+
+        // FORCER LA CONNEXION METAMASK
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.log("✅ MetaMask connecté:", accounts[0]);
+    } catch (error) {
+        console.error("❌ Erreur connexion MetaMask:", error);
+        alert("Veuillez connecter MetaMask");
+    }
     // URL du backend sur Render
-    const API_URL = 'https://diplomachain.onrender.com/api';
+    const API_URL = 'http://localhost:5000/api';
     
     // Récupérer l'adresse du contrat
     let contractAddress = null;
