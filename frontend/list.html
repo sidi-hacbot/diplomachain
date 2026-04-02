@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Liste - DiplomaChain</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        /* Styles spécifiques pour la liste */
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 0.95em;
+            outline: none;
+            transition: all 0.2s ease;
+            background: white;
+            font-family: inherit;
+        }
+        
+        .search-input:focus {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
+        
+        .result-count {
+            color: #4a5568;
+            font-size: 0.85em;
+            background: #f7fafc;
+            padding: 8px 16px;
+            border-radius: 40px;
+            white-space: nowrap;
+        }
+        
+        .btn-secondary {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: #1e2a36;
+            transform: translateY(-1px);
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2c3e50;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.6;
+        }
+        
+        .empty-state-title {
+            font-size: 1.3em;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .empty-state-text {
+            color: #718096;
+        }
+        
+        .diplome-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #edf2f7;
+            cursor: pointer;
+        }
+        
+        .diplome-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        
+        .diplome-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #2c3e50 0%, #4a5568 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: white;
+        }
+        
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #e6f7e6;
+            color: #2e7d32;
+        }
+        
+        .status-revoked {
+            background: #ffe6e6;
+            color: #c62828;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+            padding-top: 12px;
+            border-top: 1px solid #edf2f7;
+        }
+        
+        .detail-label {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #a0aec0;
+        }
+        
+        .detail-value {
+            margin: 4px 0 0;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .links {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #edf2f7;
+        }
+        
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #4a5568;
+            text-decoration: none;
+            font-size: 0.85em;
+            padding: 4px 12px;
+            border-radius: 8px;
+            background: #f7fafc;
+            transition: all 0.2s;
+        }
+        
+        .link-btn:hover {
+            color: #2c3e50;
+            background: #edf2f7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>📋 Liste des attestations</h1>
+                <p>Consultez toutes les attestations enregistrées sur la blockchain</p>
+                <p><a href="index.html" style="color: white; text-decoration: none;">← Retour à l'accueil</a></p>
+            </div>
+            <div class="card-body">
+                
+                <!-- Barre de recherche et actions -->
+                <div class="search-container">
+                    <input type="text" id="filterInput" class="search-input" placeholder="🔍 Rechercher par nom, prénom, matricule, filière ou type...">
+                    <button id="loadBtn" class="btn-secondary">🔄 Actualiser</button>
+                    <div id="filterInfo" class="result-count"></div>
+                </div>
+                
+                <!-- Conteneur des résultats -->
+                <div id="listContainer"></div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/list.js"></script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - DiplomaChain</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://unpkg.com/arweave@1.14.4/bundles/web.bundle.js"></script>
+    <script src="js/arweave.js"></script>
+    <style>
+        /* Layout en deux colonnes */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        /* Style commun pour les deux sections */
+        .admin-section {
+            background: #f9fafb;
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .admin-section:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .add-title {
+            border-bottom-color: #10b981;
+            color: #065f46;
+        }
+        
+        .revoke-title {
+            border-bottom-color: #ef4444;
+            color: #991b1b;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-input {
+            border: 2px dashed #d1d5db;
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .file-input:hover {
+            border-color: #667eea;
+            background: #f9fafb;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-size: 1em;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-size: 1em;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-primary:disabled,
+        .btn-danger:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-card {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85em;
+        }
+        
+        .result-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .result-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .file-name {
+            font-size: 0.75em;
+            color: #10b981;
+            margin-top: 6px;
+            padding-left: 4px;
+        }
+        
+        hr {
+            margin: 20px 0;
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+        }
+        
+        @media (max-width: 768px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
+        .info-badge {
+            background: #eef2ff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.8em;
+            color: #4f46e5;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>➕ Administration</h1>
+                <p>Gestion des attestations - Ajout et révocation</p>
+                <p><a href="index.html" style="color: white; text-decoration: none;">← Retour à l'accueil</a></p>
+            </div>
+            <div class="card-body">
+                
+                <div class="info-badge">
+                    🔐 Seuls les administrateurs avec les rôles appropriés peuvent effectuer ces actions
+                </div>
+                
+                <!-- DEUX COLONNES : AJOUT | RÉVOCATION -->
+                <div class="admin-grid">
+                    
+                    <!-- COLONNE GAUCHE : AJOUTER -->
+                    <div class="admin-section">
+                        <div class="section-title add-title">
+                            <span>📝</span> Ajouter une attestation
+                        </div>
+                        
+                        <form id="attestationForm">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" id="nom" placeholder="DUPONT" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" id="prenom" placeholder="Jean" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Matricule *</label>
+                                <input type="text" id="matricule" placeholder="2024001" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type *</label>
+                                <select id="typeAttestation">
+                                    <option value="LICENCE">🎓 Licence</option>
+                                    <option value="MASTER">📘 Master</option>
+                                    <option value="DOCTORAT">🔬 Doctorat</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Filière *</label>
+                                <input type="text" id="filiere" placeholder="Informatique" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Date d'obtention *</label>
+                                <input type="date" id="dateObtention" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Mention *</label>
+                                <select id="mention">
+                                    <option value="PASSABLE">📊 Passable</option>
+                                    <option value="BIEN">⭐ Bien</option>
+                                    <option value="TRES BIEN">⭐⭐ Très bien</option>
+                                    <option value="EXCELLENT">🌟🌟🌟 Excellent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>📄 Attestation PDF *</label>
+                                <div class="file-input" id="pdfUpload" onclick="document.getElementById('pdfFile').click()">
+                                    📄 Cliquez pour sélectionner le PDF
+                                </div>
+                                <input type="file" id="pdfFile" accept=".pdf" style="display: none">
+                                <div id="pdfFileName" class="file-name"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>🖼️ Photo étudiant *</label>
+                                <div class="file-input" id="photoUpload" onclick="document.getElementById('photoFile').click()">
+                                    🖼️ Cliquez pour sélectionner la photo
+                                </div>
+                                <input type="file" id="photoFile" accept="image/*" style="display: none">
+                                <div id="photoFileName" class="file-name"></div>
+                            </div>
+                            <button type="submit" class="btn-primary" id="submitBtn">✅ Valider et signer</button>
+                        </form>
+                        <div id="result" class="result-card" style="display: none;"></div>
+                    </div>
+
+                     <!-- Ajoute ce conteneur quelque part dans le body (après le formulaire) -->
+                    <div id="qrCodeContainer" style="margin-top: 20px; text-align: center; display: none;">
+                        <h3>📱 QR Code de vérification</h3>
+                        <div id="qrcode"></div>
+                        <p>Scannez ce code pour voir l'attestation</p>
+                    </div>
+                    
+                    <!-- COLONNE DROITE : RÉVOQUER -->
+                    <div class="admin-section">
+                        <div class="section-title revoke-title">
+                            <span>🚫</span> Révoquer une attestation
+                        </div>
+                        <p style="color: #6b7280; font-size: 0.85em; margin-bottom: 20px;">
+                            ⚠️ Cette action est irréversible. Seuls les administrateurs avec le rôle REVOKER peuvent effectuer cette opération.
+                        </p>
+                        
+                        <div class="form-group">
+                            <label>Matricule *</label>
+                            <input type="text" id="revokeMatricule" placeholder="Ex: 2024001">
+                        </div>
+                        <div class="form-group">
+                            <label>Type d'attestation *</label>
+                            <select id="revokeType">
+                                <option value="LICENCE">🎓 Licence</option>
+                                <option value="MASTER">📘 Master</option>
+                                <option value="DOCTORAT">🔬 Doctorat</option>
+                            </select>
+                        </div>
+                        <button id="revokeBtn" class="btn-danger">🚫 Révoquer l'attestation</button>
+                        <div id="revokeResult" class="result-card" style="display: none;"></div>
+                    </div>
+                    
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Affichage des fichiers sélectionnés
+        document.getElementById('pdfFile').addEventListener('change', function() {
+            const nameDisplay = document.getElementById('pdfFileName');
+            if (this.files && this.files[0]) {
+                nameDisplay.innerHTML = `✅ ${this.files[0].name} (${(this.files[0].size / 1024).toFixed(1)} KB)`;
+                document.getElementById('pdfUpload').innerHTML = '📄 Fichier sélectionné';
+            } else {
+                nameDisplay.innerHTML = '';
+                document.getElementById('pdfUpload').innerHTML = '📄 Cliquez pour sélectionner le PDF';
+            }
+        });
+        
+        document.getElementById('photoFile').addEventListener('change', function() {
+            const nameDisplay = document.getElementById('photoFileName');
+            if (this.files && this.files[0]) {
+                nameDisplay.innerHTML = `✅ ${this.files[0].name} (${(this.files[0].size / 1024).toFixed(1)} KB)`;
+                document.getElementById('photoUpload').innerHTML = '🖼️ Fichier sélectionné';
+            } else {
+                nameDisplay.innerHTML = '';
+                document.getElementById('photoUpload').innerHTML = '🖼️ Cliquez pour sélectionner la photo';
+            }
+        });
+        
+        // Affichage des résultats
+        function showResult(element, message, isSuccess) {
+            element.style.display = 'block';
+            element.className = `result-card ${isSuccess ? 'result-success' : 'result-error'}`;
+            element.innerHTML = isSuccess ? `✅ ${message}` : `❌ ${message}`;
+            setTimeout(() => {
+                element.style.opacity = '0';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                    element.style.opacity = '1';
+                }, 500);
+            }, 4000);
+        }
+        
+        // Rendre les fonctions globales pour admin.js
+        window.showAddResult = (message, isSuccess) => {
+            const resultDiv = document.getElementById('result');
+            showResult(resultDiv, message, isSuccess);
+        };
+        
+        window.showRevokeResult = (message, isSuccess) => {
+            const resultDiv = document.getElementById('revokeResult');
+            showResult(resultDiv, message, isSuccess);
+        };
+    </script>
+    
+    <script src="js/admin.js"></script>
+</body>
+</html>
