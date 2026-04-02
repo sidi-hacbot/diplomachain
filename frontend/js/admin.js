@@ -5,10 +5,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ============================================
     // RÉCUPÉRATION DE L'ADRESSE DU CONTRAT
     // ============================================
+    const API_URL = 'https://diplomachain.onrender.com/api';
     let contractAddress = null;
     
     try {
-        const response = await fetch('http://localhost:5000/api/contract-address');
+        // ✅ Utiliser API_URL au lieu de localhost
+        const response = await fetch(`${API_URL}/contract-address`);
         const data = await response.json();
         contractAddress = data.address;
         console.log("✅ Adresse du contrat:", contractAddress);
@@ -72,7 +74,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const pdfId = await window.uploadToArweave(pdfFile, 'application/pdf');
                 const photoId = await window.uploadToArweave(photoFile, photoFile.type);
 
-                const response = await fetch('http://localhost:5000/api/prepare-signature', {
+                // ✅ Utiliser API_URL
+                const response = await fetch(`${API_URL}/prepare-signature`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ attestationData, pdfId, photoId })
@@ -90,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-                // ✅ GAZ CORRECT POUR POLYGON
                 const tx = await contract.ajouter(
                     message.nom, message.prenom, message.typeAttestation,
                     message.matricule, message.filiere, message.dateObtention,
@@ -108,20 +110,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const baseUrl = `${window.location.protocol}//${window.location.host}`;
                 const verificationUrl = `${baseUrl}/verify.html?matricule=${attestationData.matricule}&type=${attestationData.typeAttestation}`;
                 generateQRCode(verificationUrl, 'qrcode');
-                document.getElementById('qrCodeContainer').style.display = 'block';
-                console.log("QR Code généré pour:", verificationUrl);
-                console.log("Conteneur qrcode:", document.getElementById('qrcode'));
-                // Ajouter aussi le lien texte
+                
+                // Afficher le conteneur QR code
+                const qrContainer = document.getElementById('qrCodeContainer');
+                if (qrContainer) {
+                    qrContainer.style.display = 'block';
+                }
+                
                 const qrLink = document.getElementById('qrLink');
                 if (qrLink) {
                     qrLink.innerHTML = `<a href="${verificationUrl}" target="_blank">${verificationUrl}</a>`;
                 }
 
-                // Afficher le conteneur
-                const qrContainer = document.getElementById('qrCodeContainer');
-                if (qrContainer) {
-                    qrContainer.style.display = 'block';
-                }
                 resultDiv.innerHTML = `
                     <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px;">
                         ✅ Attestation ajoutée !<br>
@@ -163,7 +163,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const signer = provider.getSigner();
                 const signerAddress = await signer.getAddress();
                 
-                // Vérifier le rôle REVOKER
                 const contractCheck = new ethers.Contract(
                     contractAddress,
                     [
@@ -187,7 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     signer
                 );
                 
-                // ✅ GAZ CORRECT POUR LA RÉVOCATION
                 const tx = await contractWithSigner.revoquerParMatriculeEtType(
                     matricule, 
                     typeAttestation,

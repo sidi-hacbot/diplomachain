@@ -1,14 +1,14 @@
 // list.js - Liste des attestations (version premium)
 
 document.addEventListener('DOMContentLoaded', () => {
+    // URL du backend sur Render
+    const API_URL = 'https://diplomachain.onrender.com/api';
     const container = document.getElementById('listContainer');
     const loadBtn = document.getElementById('loadBtn');
-    const filterInput = document.getElementById('filterInput'); // À ajouter dans le HTML
+    const filterInput = document.getElementById('filterInput');
 
-    // Fonction de recherche/filtrage
     let allDiplomes = [];
 
-    // Animation de chargement
     function showLoader() {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px;">
@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Fonction de rendu avec filtrage
     function renderDiplomes(diplomes) {
         if (diplomes.length === 0) {
             container.innerHTML = `
@@ -44,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 year: 'numeric'
             });
             
-            // Générer un avatar avec les initiales
             const initials = `${d[0].charAt(0)}${d[1].charAt(0)}`;
             
             html += `
@@ -59,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)';" 
                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)';">
                     
-                    <!-- En-tête -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="
@@ -91,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                     </div>
                     
-                    <!-- Détails -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; padding-top: 12px; border-top: 1px solid #edf2f7;">
                         <div>
                             <span style="font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.5px; color: #a0aec0;">Type</span>
@@ -111,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     
-                    <!-- Liens Arweave -->
                     <div style="display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf2f7;">
                         <a href="https://arweave.net/${d[7]}" target="_blank" style="
                             display: inline-flex;
@@ -149,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = html;
     }
 
-    // Fonction de filtrage en temps réel
     function filterDiplomes(searchTerm) {
         if (!allDiplomes.length) return;
         
@@ -170,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         renderDiplomes(filtered);
         
-        // Afficher le nombre de résultats
         const filterInfo = document.getElementById('filterInfo');
         if (filterInfo) {
             filterInfo.innerHTML = filtered.length === allDiplomes.length 
@@ -179,24 +172,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Chargement des diplômes
     async function loadDiplomes() {
         showLoader();
 
         try {
-            const response = await fetch('http://localhost:5000/api/diplomes?page=0&limit=100');
+            // ✅ Utiliser API_URL au lieu de localhost
+            const response = await fetch(`${API_URL}/diplomes?page=0&limit=100`);
             const diplomes = await response.json();
             allDiplomes = diplomes;
             
             renderDiplomes(allDiplomes);
             
-            // Mettre à jour le compteur
             const filterInfo = document.getElementById('filterInfo');
             if (filterInfo) {
                 filterInfo.innerHTML = `${allDiplomes.length} attestation${allDiplomes.length > 1 ? 's' : ''}`;
             }
             
-            // Afficher un petit toast de succès
             console.log(`✅ ${allDiplomes.length} attestations chargées`);
             
         } catch (error) {
@@ -212,12 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Initialisation
     if (loadBtn) {
         loadBtn.addEventListener('click', loadDiplomes);
     }
     
-    // Ajouter un champ de recherche si présent
     if (filterInput) {
         filterInput.addEventListener('input', (e) => filterDiplomes(e.target.value));
     }

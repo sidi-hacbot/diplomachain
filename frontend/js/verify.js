@@ -1,6 +1,8 @@
 // verify.js - Vérification d'une attestation
 
 document.addEventListener('DOMContentLoaded', () => {
+    // URL du backend sur Render
+    const API_URL = 'https://diplomachain.onrender.com/api';
     const verifyBtn = document.getElementById('verifyBtn');
     const resultDiv = document.getElementById('result');
 
@@ -17,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
             resultDiv.innerHTML = '<div class="loading">🔍 Vérification en cours...</div>';
 
             try {
-                const response = await fetch(`http://localhost:5000/api/attestation/${matricule}/${typeAttestation}`);
+                // ✅ Utiliser API_URL au lieu de localhost
+                const response = await fetch(`${API_URL}/attestation/${matricule}/${typeAttestation}`);
                 const data = await response.json();
 
                 if (!data.success) {

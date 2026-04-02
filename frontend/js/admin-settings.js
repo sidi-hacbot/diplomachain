@@ -1,17 +1,20 @@
 // admin-settings.js - Gestion avancée du contrat (version améliorée)
 
 document.addEventListener('DOMContentLoaded', async () => {
-
+    // URL du backend sur Render
+    const API_URL = 'https://diplomachain.onrender.com/api';
+    
     // Récupérer l'adresse du contrat
     let contractAddress = null;
     
     try {
-        const response = await fetch('http://localhost:5000/api/contract-address');
+        // ✅ Utiliser API_URL au lieu de localhost
+        const response = await fetch(`${API_URL}/contract-address`);
         const data = await response.json();
         contractAddress = data.address;
         console.log("✅ Adresse du contrat:", contractAddress);
     } catch (error) {
-        console.error("❌ Erreur:", error);
+        console.error("❌ Erreur récupération adresse:", error);
         alert("Impossible de récupérer l'adresse du contrat");
         return;
     }
@@ -61,7 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('adminStatus').innerHTML = isAdmin ? '👑 ADMIN' : '👤 UTILISATEUR';
             document.getElementById('adminStatus').style.color = isAdmin ? '#f59e0b' : '#666';
             
-            // Compter les relayers (approximation)
             document.getElementById('relayerCount').innerHTML = '—';
         } catch (error) {
             console.error("Erreur stats:", error);
@@ -235,10 +237,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const hasRole = await contract.hasRole(role, address);
             roleCheckResult.innerHTML = `
-                <div class="role-check-result" style="background: ${hasRole ? '#d4edda' : '#f8d7da'}; color: ${hasRole ? '#155724' : '#721c24'}; animation: fadeIn 0.3s ease;">
+                <div class="role-check-result" style="background: ${hasRole ? '#d4edda' : '#f8d7da'}; color: ${hasRole ? '#155724' : '#721c24'};">
                     🔍 ${address.slice(0, 10)}...${address.slice(-6)} : 
                     ${hasRole ? '✅ A le rôle' : '❌ N\'a pas le rôle'} <strong>${roleName}</strong>
-                    ${hasRole ? '<span class="role-badge">✓</span>' : ''}
                 </div>
             `;
         } catch (error) {
